@@ -34,7 +34,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 st.title("🧥 万代古着AI査定システム")
 st.write("画像をアップロードし、分かればブランド名を入力してください。AIが中古相場を分析します。")
 
-# 🆕 【追加】ブランド名の入力欄（ヒント文字を入れてあります）
+# ブランド名の入力欄
 brand_input = st.text_input("🏷️ ブランド名・モデル名（分かれば入力してください）", placeholder="例：Supreme、THE NORTH FACE、ヌプシ など")
 
 uploaded_file = st.file_uploader("古着の画像をアップロードしてください", type=["jpg", "jpeg", "png"])
@@ -47,9 +47,10 @@ if uploaded_file is not None:
         st.write("🧠 画像とブランド情報を分析して市場相場を算出中...")
         
         try:
-            model = genai.GenerativeModel(model_name="gemini-2.5-flash")
+            # 🚀 無料での利用回数が圧倒的に多い「gemini-1.5-flash」に変更しました！
+            model = genai.GenerativeModel(model_name="gemini-1.5-flash")
             
-            # 🆕 入力されたブランド名がある場合、指示書にプラスする仕組み
+            # 入力されたブランド名がある場合、指示書にプラスする仕組み
             brand_info = f"なお、この商品に関するスタッフからの補足情報として【ブランド名・モデル名：{brand_input}】と申告されています。この情報を最優先に考慮してください。\n" if brand_input else ""
             
             prompt = (
