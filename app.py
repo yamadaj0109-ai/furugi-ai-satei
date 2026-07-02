@@ -32,10 +32,13 @@ GOOGLE_API_KEY = "AQ.Ab8RN6LxmHWS7CNhHAi6V2ofF0kUABnCA9etzpXL85A9-cgUUw"
 genai.configure(api_key=GOOGLE_API_KEY)
 
 st.title("🧥 万代古着AI査定システム")
-st.write("画像をアップロードし、分かればブランド名を入力してください。AIが中古相場を分析します。")
+st.write("画像をアップロードし、商品の情報を入力してください。AIが中古相場を分析します。")
 
-# ブランド名の入力欄
-brand_input = st.text_input("🏷️ ブランド名・モデル名（分かれば入力してください）", placeholder="例：Supreme、THE NORTH FACE、ヌプシ など")
+# 🏷️ ブランド名の入力欄
+brand_input = st.text_input("🏷️ ブランド名・モデル名（分かれば入力）", placeholder="例：Supreme、THE NORTH FACE、ヌプシ など")
+
+# 🆕 【追加】アイテム詳細・状態の入力欄（複数行書ける大きめの箱にしました！）
+detail_input = st.text_area("📝 アイテム詳細・状態など（見て分かったこと）", placeholder="例：襟元に少し黄ばみあり、タグ付き新品、2023年モデル、など自由に書いてください")
 
 uploaded_file = st.file_uploader("古着の画像をアップロードしてください", type=["jpg", "jpeg", "png"])
 
@@ -44,20 +47,24 @@ if uploaded_file is not None:
     st.image(image, caption="アップロードされた画像", use_container_width=True)
     
     if st.button("🔍 査定をスタートする"):
-        st.write("🧠 画像とブランド情報を分析して市場相場を算出中...")
+        st.write("🧠 画像と入力された情報を分析して市場相場を算出中...")
         
         try:
-            # 🚀 あなたのアカウントで確実に動く最新の「gemini-2.5-flash」に固定！
             model = genai.GenerativeModel(model_name="gemini-2.5-flash")
             
-            # 入力されたブランド名がある場合、指示書にプラスする仕組み
-            brand_info = f"なお、この商品に関するスタッフからの補足情報として【ブランド名・モデル名：{brand_input}】と申告されています。この情報を最優先に考慮してください。\n" if brand_input else ""
+            # スタッフからの補足情報をAIの指示書に組み込む
+            brand_info = f"・【スタッフ申告のブランド・モデル名】: {brand_input}\n" if brand_input else ""
+            detail_info = f"・【スタッフが肉眼で確認した状態・詳細】: {detail_input}\n" if detail_input else ""
+            
+            user_meta_info = ""
+            if brand_info or detail_info:
+                user_meta_info = f"なお、この商品に関して現場のスタッフから以下の補足情報が届いています。査定時にはこの情報を最優先で考慮してください：\n{brand_info}{detail_info}\n\n"
             
             prompt = (
-                f"{brand_info}"
-                "この古着の画像からブランド名、モデル名、アイテムの種類を特定してください。\n"
+                f"{user_meta_info}"
+                "この古着の画像とスタッフからの補足情報を元に、ブランド名、モデル名、アイテムの種類を特定してください。\n"
                 "その後、あなたの持つ中古市場データから、【メルカリ（mercari.com）】および【楽天市場（rakuten.co.jp）】における"
-                "このアイテム（または類似モデル）の流通相場を徹底分析し、以下の構成で出力してください。\n\n"
+                "このアイテム（または類似モデル・状態が近いもの）の流通相場を徹底分析し、以下の構成で出力してください。\n\n"
                 "--- \n"
                 "### 1. 🔍 特定されたアイテム情報\n"
                 "・特定できたブランド名やモデル名、特徴をプロの視点から解説。\n\n"
@@ -67,7 +74,7 @@ if uploaded_file is not None:
                 "### 3. 🟣 楽天市場（中古市場）での流通相場\n"
                 "・【中古古着の販売価格】: 楽天の中古ショップ等で並ぶ際の一般的な販売価格や、状態ごとの相場ラインを教えてください。\n\n"
                 "### 4. 📝 総合査定アドバイス（万代用）\n"
-                "・上記の中古流通相場を踏まえ、当店での「推奨買取価格（利益が出るライン）」と「推奨販売設定価格」を具体的に提案してください。"
+                "・上記の中古流通相場やスタッフが記入した状態（傷や汚れなど）を踏まえ、当店での「推奨買取価格（利益が出るライン）」と「推奨販売設定価格」を具体的に提案してください。"
             )
             
             response = model.generate_content([prompt, image])
