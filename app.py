@@ -4,7 +4,7 @@ import google.generativeai as genai
 from PIL import Image
 
 # 🛠️ 【設定】スタッフ共通のパスワード
-PASSWORD_SECRET = "mandaifurugi"
+PASSWORD_SECRET = "mandai2026"
 
 # 🔑 パスワード認証の管理
 if "authenticated" not in st.session_state:
@@ -27,7 +27,7 @@ if not st.session_state["authenticated"]:
 
 # --- 🔓 ここから下はログイン成功後に表示される画面 ---
 
-# 🌐 RenderのEnvironmentからAPIキーを読み込む（エラーを回避する安全な書き方）
+# 🌐 RenderのEnvironmentからAPIキーを読み込む
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "YOUR_DEFAULT_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
@@ -43,10 +43,10 @@ if uploaded_file is not None:
     st.write("🔍 メルカリと楽天市場の最新情報をリアルタイム検索中...")
     
     try:
-        # 🌐 Google検索機能をONにしてモデルを起動
+        # 🌐 Google検索機能（グラウンディング）の正しい最新の書き方
         model = genai.GenerativeModel(
             model_name="gemini-1.5-flash",
-            tools=[{"google_search": {}}]
+            tools=[{"google_search_retrieval": {}}]  # ← ここを最新の正しい名前に直しました！
         )
         
         prompt = (
