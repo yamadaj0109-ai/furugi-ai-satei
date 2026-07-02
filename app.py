@@ -12,7 +12,7 @@ if "authenticated" not in st.session_state:
 
 # パスワード未入力の場合、ログイン画面を表示
 if not st.session_state["authenticated"]:
-    st.title("🔒 古着AI査定システム - ログイン")
+    st.title("🔒 万代古着AI査定システム - ログイン")
     st.write("このアプリは関係者専用です。スタッフ共通のパスワードを入力してください。")
     
     user_password = st.text_input("パスワードを入力", type="password")
@@ -31,7 +31,7 @@ if not st.session_state["authenticated"]:
 GOOGLE_API_KEY = "AQ.Ab8RN6LxmHWS7CNhHAi6V2ofF0kUABnCA9etzpXL85A9-cgUUw"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-st.title("🧥 古着AI査定システム（メルカリ・楽天 相場分析版）")
+st.title("🧥 万代古着AI査定システム")
 st.write("画像をアップロードし、商品の情報を入力してください。AIが中古相場を分析します。")
 
 # 🏷️ ブランド名の入力欄
@@ -47,15 +47,15 @@ if uploaded_file is not None:
     st.image(image, caption="アップロードされた画像", use_container_width=True)
     
     if st.button("🔍 査定をスタートする"):
-        st.write("🧠 最上位AIが画像と状態をディープに分析中...")
+        st.write("🧠 AIが画像と状態を分析中...")
         
         try:
-            # 🚀 1日50回まで使えて、査定精度も最高峰の「gemini-2.5-pro」に切り替え！
+            # 🚀 1日50回枠の「gemini-2.5-pro」
             model = genai.GenerativeModel(model_name="gemini-2.5-pro")
             
-            # スタッフからの補足情報をAIの指示書に組み込む
+            # スタッフからの補足情報をAIの指示書に組み込む（バグを修正しました！）
             brand_info = f"・【スタッフ申告のブランド・モデル名】: {brand_input}\n" if brand_input else ""
-            detail_info = f"・【スタッフが肉眼で確認した状態・詳細】: {detail_input}\n" if detail_info else ""
+            detail_info = f"・【スタッフが肉眼で確認した状態・詳細】: {detail_input}\n" if detail_input else ""
             
             user_meta_info = ""
             if brand_info or detail_info:
