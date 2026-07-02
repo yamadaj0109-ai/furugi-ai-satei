@@ -43,10 +43,10 @@ if uploaded_file is not None:
     st.write("🔍 メルカリと楽天市場の最新情報をリアルタイム検索中...")
     
     try:
-        # 🌐 ネット検索機能に対応した最新の「gemini-2.5-flash」を指定！
+        # 🌐 AIの指示通り、最新モデルに「google_search」を組み合わせました！
         model = genai.GenerativeModel(
             model_name="gemini-2.5-flash",
-            tools=[{"google_search_retrieval": {}}]
+            tools=[{"google_search": {}}]  # ← ここを「google_search」に戻しました！
         )
         
         prompt = (
@@ -64,7 +64,7 @@ if uploaded_file is not None:
             "### 4. 📝 総合査定アドバイス（万代用）\n"
             "・上記のリサーチ結果を踏まえ、当店での「推奨買取価格（これくらいで買えば利益が出る）」と「推奨販売設定価格」をプロとして提案してください。\n\n"
             "### 🔗 参考にしたページ（情報元）\n"
-            "・検索で見つけたメルカリや楽天の具体的な商品ページや検索結果のURLを、クリックできるリンク形式で箇条書きで必ず載せてください。"
+            "・検索で見つけたメルカリや楽天の具体的な商品ページや検索結果のURLを、クリックできるリンク形式で箇ろ書きで必ず載せてください。"
         )
         
         response = model.generate_content([prompt, image])
