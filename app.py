@@ -1,3 +1,4 @@
+import os
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
@@ -26,8 +27,8 @@ if not st.session_state["authenticated"]:
 
 # --- 🔓 ここから下はログイン成功後に表示される画面 ---
 
-# Gemini APIの設定
-GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "YOUR_DEFAULT_API_KEY")
+# 🌐 RenderのEnvironmentからAPIキーを読み込む（エラーを回避する安全な書き方）
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "YOUR_DEFAULT_API_KEY")
 genai.configure(api_key=GOOGLE_API_KEY)
 
 st.title("🧥 古着AI査定システム（メルカリ・楽天 相場特化版）")
