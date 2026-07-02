@@ -43,10 +43,10 @@ if uploaded_file is not None:
     st.write("🔍 メルカリと楽天市場の最新情報をリアルタイム検索中...")
     
     try:
-        # 🌐 Google検索機能（グラウンディング）の正しい最新の書き方
+        # 🌐 ネット検索機能に対応した最新の「gemini-2.5-flash」を指定！
         model = genai.GenerativeModel(
-            model_name="gemini-1.5-flash",
-            tools=[{"google_search_retrieval": {}}]  # ← ここを最新の正しい名前に直しました！
+            model_name="gemini-2.5-flash",
+            tools=[{"google_search_retrieval": {}}]
         )
         
         prompt = (
