@@ -47,8 +47,8 @@ if uploaded_file is not None:
         st.write("🧠 画像とブランド情報を分析して市場相場を算出中...")
         
         try:
-            # 🚀 無料での利用回数が圧倒的に多い「gemini-1.5-flash」に変更しました！
-            model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+            # 🚀 あなたのアカウントで確実に動く最新の「gemini-2.5-flash」に固定！
+            model = genai.GenerativeModel(model_name="gemini-2.5-flash")
             
             # 入力されたブランド名がある場合、指示書にプラスする仕組み
             brand_info = f"なお、この商品に関するスタッフからの補足情報として【ブランド名・モデル名：{brand_input}】と申告されています。この情報を最優先に考慮してください。\n" if brand_input else ""
