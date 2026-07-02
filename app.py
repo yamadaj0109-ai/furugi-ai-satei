@@ -11,7 +11,7 @@ if "authenticated" not in st.session_state:
 
 # パスワード未入力の場合、ログイン画面を表示
 if not st.session_state["authenticated"]:
-    st.title("🔒 古着AI査定システム - ログイン")
+    st.title("🔒 万代古着AI査定システム - ログイン")
     st.write("このアプリは関係者専用です。スタッフ共通のパスワードを入力してください。")
     
     user_password = st.text_input("パスワードを入力", type="password")
@@ -30,8 +30,8 @@ if not st.session_state["authenticated"]:
 GOOGLE_API_KEY = "AQ.Ab8RN6LxmHWS7CNhHAi6V2ofF0kUABnCA9etzpXL85A9-cgUUw"
 genai.configure(api_key=GOOGLE_API_KEY)
 
-st.title("🧥 古着AI査定システム（メルカリ・楽天 相場分析版）")
-st.write("画像をアップロードすると、AIの持つ膨大なデータからメルカリや楽天市場での相場を分析・査定します。")
+st.title("🧥 万代古着AI査定システム")
+st.write("画像をアップロードすると、AIで相場を分析・査定します。")
 
 uploaded_file = st.file_uploader("古着の画像をアップロードしてください", type=["jpg", "jpeg", "png"])
 
