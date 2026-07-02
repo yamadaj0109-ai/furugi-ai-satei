@@ -1,102 +1,75 @@
 import streamlit as st
 import google.generativeai as genai
 from PIL import Image
-import os
-import requests
-import base64
 
-# 画面の初期設定
-st.set_page_config(page_title="古着AI査定システム", layout="centered")
+# 🛠️ 【設定】スタッフ共通のパスワード
+PASSWORD_SECRET = "mandaifurugi"
 
-st.title("👕 古着AI査定システム")
-st.write("商品の写真をアップロードすると、二次流通のトレンドや市場価値を踏まえた高精度な査定を行います。")
+# 🔑 パスワード認証の管理
+if "authenticated" not in st.session_state:
+    st.session_state["authenticated"] = False
 
-# 🔑 あなたの本物の最新特権キー（ここに直接書いておくのが一番確実です！）
-api_key = "AQ.Ab8RN6LxmHWS7CNhHAi6V2ofF0kUABnCA9etzpXL85A9-cgUUw"
+# パスワード未入力の場合、ログイン画面を表示
+if not st.session_state["authenticated"]:
+    st.title("🔒 古着AI査定システム - ログイン")
+    st.write("このアプリは関係者専用です。スタッフ共通のパスワードを入力してください。")
+    
+    user_password = st.text_input("パスワードを入力", type="password")
+    
+    if st.button("ログイン"):
+        if user_password == PASSWORD_SECRET:
+            st.session_state["authenticated"] = True
+            st.rerun()
+        else:
+            st.error("パスワードが違います。店舗の管理者に確認してください。")
+    st.stop()
 
-# 写真のアップロード機能
-uploaded_file = st.file_uploader("古着の画像をアップロード（複数枚は不可）", type=["jpg", "jpeg", "png"])
+# --- 🔓 ここから下はログイン成功後に表示される画面 ---
+
+# Gemini APIの設定
+GOOGLE_API_KEY = st.secrets.get("GOOGLE_API_KEY", "YOUR_DEFAULT_API_KEY")
+genai.configure(api_key=GOOGLE_API_KEY)
+
+st.title("🧥 古着AI査定システム（メルカリ・楽天 相場特化版）")
+st.write("画像をアップロードすると、メルカリや楽天市場から「過去の売値」と「現在の出品価格」をリサーチします。")
+
+uploaded_file = st.file_uploader("古着の画像をアップロードしてください", type=["jpg", "jpeg", "png"])
 
 if uploaded_file is not None:
     image = Image.open(uploaded_file)
-    st.image(image, caption="アップロードされた商品", use_container_width=True)
+    st.image(image, caption="アップロードされた画像", use_container_width=True)
     
-    if st.button("✨ 査定を開始する", type="primary"):
-        with st.spinner("画像を分析中... トレンドや市場価値を計算しています..."):
-            try:
-                # 査定精度と価格ロジックを強化した指示書
-                prompt = """
-                あなたは日本国内のセカンドハンド（古着）市場に精通した、経験豊富なシニアバイヤー・査定士です。
-                提出された画像からブランド、アイテムの種類、状態、年代（ヴィンテージ等）を的確に見極め、
-                現在の日本の若者トレンド（Y2K、ストリート、シティボーイ、テック系など）や二次流通相場を考慮して査定を行ってください。
-
-                特に【価格設定ルール】を厳格に守ってください：
-                1. まず、現在の市場価値から「店頭販売想定価格」を算出してください。
-                2. 「買取目安価格」は、その店頭販売想定価格の【4割（40%）】を基本ベース（基準）として計算してください。
-                3. トレンド性が非常に高いものや、ヴィンテージ等の高付加価値商品である場合のみ、例外として【最大6割（60%）】まで引き上げて構いません。絶対に6割は超えないでください。
-                4. ファストファッションやノーブランドの場合は、販売価格を低く設定し、買取価格も数十円〜数百円のリアルな数字（4割基準）にしてください。
-
-                出力は必ず以下の【Markdownフォーマット】に従い、スタッフやお客様が見やすいように整理して出力してください。丁寧かつ落ち着いた口調（〜です、〜ます）でお願いします。
-
-                ---
-                ### 🏷️ 1. 商品の特定・特徴
-                * **推定ブランド / アイテム名:** * **年代 / スタイル:** （例：90年代、Y2K、現行トレンドなど）
-                * **デザインの特徴:** ### 📊 2. 状態（コンディション）分析
-                * **想定ランク:** （S, A, B, C, Dのいずれかで評価）
-                * **状態の補足:** （画像から見えるシワ、ヨレ、色褪せ、傷などの有無、または予測される注意点）
-
-                ### 📈 3. トレンド・市場価値の評価
-                * **中古市場での需要:** （★☆☆☆☆ 〜 ★★★慢で評価）
-                * **主なターゲット層:** （例：20代前半のストリート系メンズ、ミニマル好きな30代女性など）
-                * **解説:** （現在の流行りや、なぜその価値になるのかのバイヤー目線の解説）
-
-                ### 💰 4. 参考価格アドバイス（売買比率：4割〜6割厳守）
-                * **店頭販売想定価格:** `¥[ここに価格]`
-                * **買取目安価格:** `¥[ここに価格]` 〜 `¥[ここに価格]`
-                * **価格設定の理由・根拠コメント:** （なぜこの販売価格にしたのか、引上げ・据置きの理由、在庫リスクや回転率を交えて解説してください）
-
-                ### 📝 5. 接客・店舗運営アドバイス
-                * **お客様へのアプローチ例:** （買取時の納得感を与える一言や、販売時のセールトーク例）
-                * **売場展開の提案:** （店内のどのコーナーに置くと映えるか、相性の良いアイテムなど）
-                ---
-                """
-                
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
-                
-                uploaded_file.seek(0)
-                img_bytes = uploaded_file.getvalue()
-                base64_image = base64.b64encode(img_bytes).decode('utf-8')
-                
-                payload = {
-                    "contents": [{
-                        "parts": [
-                            {"text": prompt},
-                            {
-                                "inlineData": {
-                                    "mimeType": f"image/{uploaded_file.type.split('/')[-1]}",
-                                    "data": base64_image
-                                }
-                            }
-                        ]
-                    }]
-                }
-                
-                res = requests.post(url, json=payload)
-                res_json = res.json()
-                
-                if res.status_code == 200:
-                    if 'contents' in res_json:
-                        result_text = res_json['contents'][0]['parts'][0]['text']
-                        st.success("査定が完了しました！")
-                        st.markdown(result_text)
-                    elif 'candidates' in res_json:
-                        result_text = res_json['candidates'][0]['content']['parts'][0]['text']
-                        st.success("査定が完了しました！")
-                        st.markdown(result_text)
-                    else:
-                        st.error("AIからのデータの形が想定と異なります。管理画面の設定を確認してください。")
-                else:
-                    st.error(f"AIからの返答に失敗しました: {res_json.get('error', {}).get('message', '不明なエラー')}")
-                    
-            except Exception as e:
-                st.error(f"査定中にエラーが発生しました: {e}")
+    st.write("🔍 メルカリと楽天市場の最新情報をリアルタイム検索中...")
+    
+    try:
+        # 🌐 Google検索機能をONにしてモデルを起動
+        model = genai.GenerativeModel(
+            model_name="gemini-1.5-flash",
+            tools=[{"google_search": {}}]
+        )
+        
+        prompt = (
+            "この古着の画像からブランド名、モデル名、アイテムの種類を特定してください。\n"
+            "その後、Google検索を駆使して【メルカリ（mercari.com）】および【楽天市場（rakuten.co.jp）】の中古市場から、"
+            "このアイテムと同一、または酷似している商品のリサーチを行い、以下の構成で出力してください。\n\n"
+            "--- \n"
+            "### 1. 🔍 特定されたアイテム情報\n"
+            "・特定できたブランド名やモデル名、特徴を簡潔に。\n\n"
+            "### 2. 🔴 メルカリでの流通相場\n"
+            "・【過去の販売実績】: どのくらい前（○ヶ月前、最近、など）に、いくら（○円）で売り切れている（SOLD）か、具体的な取引例を出してください。\n"
+            "・【現在の出品状況】: 今現在、売れ残って出品中の同一商品がいくら（○円程度）で市場に残っているかを調べてください。\n\n"
+            "### 3. 🟣 楽天市場（中古市場）での流通相場\n"
+            "・【過去・現在の価格】: 楽天に出品されている（または過去にあった）中古古着の販売価格や、現在の最安値・最高値のラインを教えてください。\n\n"
+            "### 4. 📝 総合査定アドバイス（万代用）\n"
+            "・上記のリサーチ結果を踏まえ、当店での「推奨買取価格（これくらいで買えば利益が出る）」と「推奨販売設定価格」をプロとして提案してください。\n\n"
+            "### 🔗 参考にしたページ（情報元）\n"
+            "・検索で見つけたメルカリや楽天の具体的な商品ページや検索結果のURLを、クリックできるリンク形式で箇条書きで必ず載せてください。"
+        )
+        
+        response = model.generate_content([prompt, image])
+        
+        st.subheader("🤖 メルカリ・楽天 リサーチ＆査定結果")
+        st.write(response.text)
+        
+    except Exception as e:
+        st.error(f"エラーが発生しました: {e}")
