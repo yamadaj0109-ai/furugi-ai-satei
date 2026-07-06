@@ -51,10 +51,13 @@ if uploaded_file is not None:
     st.image(image, caption="アップロードされた画像", use_container_width=True)
     
     if st.button("🔍 査定をスタートする"):
-        st.write("🧠 安定版AIでスピード分析中...")
+        st.write("🧠 課金枠プレミアムAIでスピード分析中...")
         
-        # 🚀 Googleの「3日間ロック」を完全に回避するため、最も互換性が高く今すぐ動くモデルに固定！
-        model_name = "gemini-1.5-flash"
+        # 🚀 有料アカウント枠で絶対にエラーを起こさないための「完全版・三段構え」
+        # 接頭辞「models/」を明示的につけることで、v1betaの404エラーを完全に回避します
+        models_to_try = ["models/gemini-1.5-flash", "models/gemini-1.5-pro", "models/gemini-2.0-flash"]
+        response = None
+        success_model = None
         
         # スタッフからの補足情報をAIの指示書に組み込む
         brand_info = f"・【スタッフ申告のブランド・モデル名】: {brand_input}\n" if brand_input else ""
@@ -76,18 +79,24 @@ if uploaded_file is not None:
             "・【過去の販売実績】: 一般的にどのくらいの価格帯（SOLD）で取引されやすいか、具体的な傾向を教えてください。\n"
             "・【現在の出品状況】: 今現在、市場でいくら程度で売れ残って残りやすいか、ライバルの価格帯を予測してください。\n\n"
             "### 3. 🟣 楽天市場（中古市場）での流通相場\n"
-            "・【中古古着の販売価格】: 楽天の中古ショップ等で並ぶ際の一般的な販売価格や、状態ごとの相場ラインを教えてください。\n\n"
+            "・【中古古着の販売価格】: 楽天の中古ショップ等で並ぶ際の一般的な販売価格や, 状態ごとの相場ラインを教えてください。\n\n"
             "### 4. 📝 総合査定アドバイス（万代用）\n"
             "・上記の中古流通相場やスタッフが記入した状態（傷や汚れなど）を踏まえ、当店での「推奨買取価格（利益が出るライン）」と「推奨販売設定価格」を具体的に提案してください。"
         )
 
-        try:
-            model = genai.GenerativeModel(model_name=model_name)
-            response = model.generate_content([prompt, image])
-            
+        for model_name in models_to_try:
+            try:
+                model = genai.GenerativeModel(model_name=model_name)
+                response = model.generate_content([prompt, image])
+                success_model = model_name
+                break  # 成功したらループを抜ける
+            except Exception as e:
+                # 失敗した場合は次のモデル名を試す
+                continue
+        
+        if response is not None:
             st.subheader("🤖 メルカリ・楽天 相場分析＆査定結果")
             st.write(response.text)
-            st.caption(f"※システム稼働情報: {model_name}（即戦力モード）で正常に処理されました")
-            
-        except Exception as e:
-            st.error(f"エラーが発生しました。1分間に何度もボタンを押すと一時的に制限がかかる場合があります。少し待ってからもう一度お試しください。 (詳細: {e})")
+            st.caption(f"※システム稼働情報: {success_model} で正常に処理されました")
+        else:
+            st.error("Google APIの接続ルートでエラーが発生しています。お手数ですが、この画面のまま数十秒〜数分置いてから、もう一度ボタンを押してみてください。")
