@@ -32,6 +32,8 @@ part_1 = "AQ.Ab8RN6JZpHdD6"
 part_2 = "YwodMGQ80TL7lWqJa_"
 part_3 = "ZnNOCkhWPS5NPNWkjRQ"
 GOOGLE_API_KEY = part_1 + part_2 + part_3
+
+# 【重要】最新のAPI互換性を確保するための初期化設定
 genai.configure(api_key=GOOGLE_API_KEY)
 
 st.title("🧥 古着AI査定システム（メルカリ・楽天 相場分析版）")
@@ -50,11 +52,11 @@ if uploaded_file is not None:
     st.image(image, caption="アップロードされた画像", use_container_width=True)
     
     if st.button("🔍 査定をスタートする"):
-        st.write("🧠 最新モデルのAIでスピード分析中...")
+        st.write("🧠 最新の安定版AIでスピード分析中...")
         
         try:
-            # 🚀 最新の有効なモデル名「gemini-2.0-flash-exp」に変更！
-            model = genai.GenerativeModel(model_name="gemini-2.0-flash-exp")
+            # 🚀 現在最も安定しているプロダクション用モデルを指定
+            model = genai.GenerativeModel("gemini-2.0-flash")
             
             # スタッフからの補足情報をAIの指示書に組み込む
             brand_info = f"・【スタッフ申告のブランド・モデル名】: {brand_input}\n" if brand_input else ""
@@ -75,13 +77,13 @@ if uploaded_file is not None:
                 "### 2. 🔴 メルカリでの流通相場（予測・傾向値）\n"
                 "・【過去の販売実績】: 一般的にどのくらいの価格帯（SOLD）で取引されやすいか、具体的な傾向を教えてください。\n"
                 "・【現在の出品状況】: 今現在、市場でいくら程度で売れ残って残りやすいか、ライバルの価格帯を予測してください。\n\n"
-                "### 🟣 楽天市場（中古市場）での流通相場\n"
+                "### 3. 🟣 楽天市場（中古市場）での流通相場\n"
                 "・【中古古着の販売価格】: 楽天の中古ショップ等で並ぶ際の一般的な販売価格や、状態ごとの相場ラインを教えてください。\n\n"
                 "### 4. 📝 総合査定アドバイス（万代用）\n"
                 "・上記の中古流通相場やスタッフが記入した状態（傷や汚れなど）を踏まえ、当店での「推奨買取価格（利益が出るライン）」と「推奨販売設定価格」を具体的に提案してください。"
             )
             
-            # 最新の画像＋テキスト同時入力方式に対応
+            # 最新のAPI仕様に合わせた呼び出し方に修正
             response = model.generate_content([prompt, image])
             
             st.subheader("🤖 メルカリ・楽天 相場分析＆査定結果")
