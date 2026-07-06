@@ -51,13 +51,10 @@ if uploaded_file is not None:
     st.image(image, caption="アップロードされた画像", use_container_width=True)
     
     if st.button("🔍 査定をスタートする"):
-        st.write("🧠 有料枠のプレミアムAIでスピード分析中...")
+        st.write("🧠 安定版AIでスピード分析中...")
         
-        # 🚀 有料アカウント枠で100%動かすための「究極の3段構え」
-        # 最も安定している「1.5-pro」を最優先にし、ダメならflash系を総当たりします
-        models_to_try = ["gemini-1.5-pro", "gemini-1.5-flash", "gemini-2.0-flash"]
-        response = None
-        success_model = None
+        # 🚀 Googleの「3日間ロック」を完全に回避するため、最も互換性が高く今すぐ動くモデルに固定！
+        model_name = "gemini-1.5-flash"
         
         # スタッフからの補足情報をAIの指示書に組み込む
         brand_info = f"・【スタッフ申告のブランド・モデル名】: {brand_input}\n" if brand_input else ""
@@ -84,19 +81,13 @@ if uploaded_file is not None:
             "・上記の中古流通相場やスタッフが記入した状態（傷や汚れなど）を踏まえ、当店での「推奨買取価格（利益が出るライン）」と「推奨販売設定価格」を具体的に提案してください。"
         )
 
-        for model_name in models_to_try:
-            try:
-                model = genai.GenerativeModel(model_name=model_name)
-                response = model.generate_content([prompt, image])
-                success_model = model_name
-                break  # 成功したらループを抜ける
-            except Exception as e:
-                # 失敗ログを残しつつ、次のモデルを試す
-                continue
-        
-        if response is not None:
+        try:
+            model = genai.GenerativeModel(model_name=model_name)
+            response = model.generate_content([prompt, image])
+            
             st.subheader("🤖 メルカリ・楽天 相場分析＆査定結果")
             st.write(response.text)
-            st.caption(f"※システム稼働情報: {success_model} を使用して正常に処理されました")
-        else:
-            st.error("Google側の決済反映による一時的な制限、またはAPIエラーが続いています。コードは完璧な状態（3段構え）ですので、この画面のまま、少しだけ時間（数分〜数十分）を置いてからもう一度ボタンを押してください。")
+            st.caption(f"※システム稼働情報: {model_name}（即戦力モード）で正常に処理されました")
+            
+        except Exception as e:
+            st.error(f"エラーが発生しました。1分間に何度もボタンを押すと一時的に制限がかかる場合があります。少し待ってからもう一度お試しください。 (詳細: {e})")
